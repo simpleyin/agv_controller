@@ -13,6 +13,8 @@
 * AGV监控模块
 * 登录模块
 
+##TODO
+
 ## 依赖
 * Angular: 6.0.5
 * Angular CLI: 6.0.8
@@ -32,3 +34,4 @@
 * [Angular Material](https://material.angular.io/guide/getting-started)
 * [PWA 调试](https://www.zcfy.cc/article/how-to-debug-progressive-web-apps-using-browser-developer-tools-4454.html?t=new)
 * [HTML Header中常用标签](http://www.runoob.com/w3cnote/html-meta-intro.html)
+* [配置GitHub SSH](https://www.cnblogs.com/peteremperor/p/6135809.html)
