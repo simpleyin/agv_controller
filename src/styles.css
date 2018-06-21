@@ -1,1 +1,18 @@
 /* You can add global styles to this file, and also import other style files */
+body {
+    /* 字体抗锯齿，看起来更清晰 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.color-teal {
+    background-color: #009688;
+}
+
+.color-teal-light {
+    background-color: #4db6ac;
+}
+
+.text-center {
+    text-align: center;
+}
