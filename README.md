@@ -15,6 +15,8 @@
 * 路由模块
 
 ##TODO
+1. 组件化Modal(style: material design)，使其具有较强的复用性。
+2. Login component中引入Modal component。
 
 ## 依赖
 * Angular: 6.0.5
