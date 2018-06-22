@@ -1,3 +1,14 @@
-<div class="modal">
-  <app-modal></app-modal>
+<h1 mat-dialog-title>AGV Controller</h1>
+<div mat-dialog-content>
+  <p>用户名</p>
+  <mat-form-field>
+    <input matInput [(ngModel)]="data.userName">
+  </mat-form-field>
+  <p>密码</p>
+  <mat-form-field>
+    <input matInput [(ngModel)]="data.userPassword">
+  </mat-form-field>
+</div>
+<div mat-dialog-actions class="dialog-footer">
+  <a class="btn-circle btn-orange" (click)="onLogin()" cdkFocusInitial>登录</a>
 </div>

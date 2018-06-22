@@ -1,12 +1,11 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './/app-routing.module';
 import { LoginModule } from './login/login.module';
 import { NotFoundModule } from './not-found/not-found.module';
-import { ModalModule } from './modal/modal.module';
-import { ModalComponent } from './modal/modal/modal.component';
+import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material";
+import { ControllerModule } from './controller/controller.module';
 
 @NgModule({
   declarations: [
@@ -17,12 +16,11 @@ import { ModalComponent } from './modal/modal/modal.component';
     LoginModule,
     AppRoutingModule,
     NotFoundModule,
-    ModalModule
+    ControllerModule
   ],
-  providers: [],
+  providers: [
+    {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}
+  ],
   bootstrap: [AppComponent],
-  exports: [
-    ModalComponent
-  ]
 })
 export class AppModule { }
