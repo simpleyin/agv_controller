@@ -1,4 +1,4 @@
-<h1 mat-dialog-title>AGV Controller</h1>
+<h1 mat-dialog-title style="text-align: center">AGV Controller</h1>
 <div mat-dialog-content>
   <p>用户名</p>
   <mat-form-field>
@@ -10,5 +10,8 @@
   </mat-form-field>
 </div>
 <div mat-dialog-actions class="dialog-footer">
-  <a class="btn-circle btn-orange" (click)="onLogin()" cdkFocusInitial>登录</a>
+  <a class="btn-circle btn-orange"  (click)="onLogin()" cdkFocusInitial>
+    <div [@loginBtn]="loginState">登录</div>
+    <div [@loginIcon]="loginState" class="loader"></div>
+  </a>
 </div>

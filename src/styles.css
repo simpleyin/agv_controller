@@ -3,9 +3,10 @@
 
 body {
     /* 字体抗锯齿，看起来更清晰 */
+    font-family: sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #4db6ac;
+    background-color: #607D8B;
 }
 
 .color-teal {
@@ -18,4 +19,9 @@ body {
 
 .text-center {
     text-align: center;
+}
+
+/** 改变dialog样式 **/
+mat-dialog-container {
+    
 }

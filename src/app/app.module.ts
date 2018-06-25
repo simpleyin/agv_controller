@@ -6,7 +6,7 @@ import { LoginModule } from './login/login.module';
 import { NotFoundModule } from './not-found/not-found.module';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material";
 import { ControllerModule } from './controller/controller.module';
-import { OverlayModule } from './overlay/overlay.module';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -14,11 +14,11 @@ import { OverlayModule } from './overlay/overlay.module';
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     LoginModule,
     AppRoutingModule,
     NotFoundModule,
     ControllerModule,
-    OverlayModule
   ],
   providers: [
     {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}
