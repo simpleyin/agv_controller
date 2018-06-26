@@ -16,6 +16,7 @@
 
 ## TODO
 1. 为Controller添加路由守卫
+2. 为Login dialog添加动画效果
 
 ## 依赖
 * Angular: 6.0.5

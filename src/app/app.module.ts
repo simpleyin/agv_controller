@@ -7,6 +7,8 @@ import { NotFoundModule } from './not-found/not-found.module';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material";
 import { ControllerModule } from './controller/controller.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NgxWebsocketModule, NgxWebsocketService } from "ngx-websocket";
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -19,8 +21,11 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     AppRoutingModule,
     NotFoundModule,
     ControllerModule,
+    NgxWebsocketModule,
+    HttpClientModule
   ],
   providers: [
+    NgxWebsocketService,
     {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}
   ],
   bootstrap: [AppComponent],

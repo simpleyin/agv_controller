@@ -1,3 +1,16 @@
-<p>
-  controller works!
-</p>
+<div class="container">
+  <div class="map">
+    <button (click)="clickme()">Button</button>
+  </div>
+  <div class="{{control_dialog_class}}-overlay"></div>
+  <div class="{{control_dialog_class}}">
+    <div class="choice-table" [@choiceTableState]="controlState">
+      <button mat-raised-button color="basic" *ngFor="let btn of agvArr"  class="choice-table-btn" >{{btn}}</button>
+    </div>
+    <div class="control-bar" [@controlBarState]="controlState">
+      <button mat-raised-button class="control-bar-btn" color="primary">启动</button>
+      <button mat-raised-button class="control-bar-btn" color="warn">停止</button>
+    </div>
+  </div>
+  <button mat-fab [@toggleBtnState]="controlState" color="primary" class="control-toogle-btn" (click)="toggleControlState()"><mat-icon svgIcon="add"></mat-icon></button>
+</div>
