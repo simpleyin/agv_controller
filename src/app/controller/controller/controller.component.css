@@ -67,7 +67,8 @@
     margin-right: auto;
     margin-left: auto;
     display: flex;
-    background-color: teal;
+    background-color: #607d8b;
+    border-bottom: 2px solid grey;
     width: 80%;
     height: 60%;
     min-height: 60%;

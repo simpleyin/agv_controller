@@ -3,6 +3,7 @@ import { NgxWebsocketService } from "ngx-websocket";
 import { trigger, style, state, transition, animate } from '@angular/animations';
 import { MatIconRegistry } from '@angular/material';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Agv } from '../../meta/agv';
 
 /**
  * TODO
@@ -33,13 +34,13 @@ import { DomSanitizer } from '@angular/platform-browser';
         style({
           transform: "translateY(100%)"
         }),
-        animate(300)
+        animate(200)
       ]),
       transition("active => inactive", [
         style({
           transform: "translateY(-100%)"
         }),
-        animate(300)
+        animate(200)
       ]),
     ]),
     trigger("toggleBtnState", [
@@ -57,7 +58,9 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class ControllerComponent implements OnInit {
   public controlState: string = "inactive";
   public control_dialog_class: string = "control-dialog";
-  public agvArr: Array<string> = [];
+  public agvs: Array<Agv> = [];
+  public color: string = "primary";
+  private currentAgv: number;
 
   constructor(private websocketService: NgxWebsocketService, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon(
@@ -67,24 +70,48 @@ export class ControllerComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.websocketService.open("ws://echo.websocket.org").on("open", d => {
-      d.websocket.send("hello world");
-    }).on("message", d => {
-      console.log(d.event.data);
-    })
     for (let i = 0; i < 7; i++) {
-      this.agvArr.push("AGV " + (i + 1));
+      this.agvs.push(new Agv("AGV " + (i + 1), i));
+      this.agvs[i].selected = true;
     }
   }
+  
+  toggleControlState(): void {
+    this.control_dialog_class = this.control_dialog_class === "control-dialog" ? "control-dialog-full" : "control-dialog";
+    this.controlState = this.controlState === "inactive" ? "active" : "inactive";
+  }
 
+  /**
+   * 改变当前所选AGV
+   */
+  selectCurrentAgv(target: HTMLElement): void {
+    let id: number;
+    if (!target.id) {
+      target = target.parentElement;
+      id = parseInt(target.id);
+    } else {
+      id = parseInt(target.id);
+    }
+    this.currentAgv = id;
+    this.agvs.forEach((value, index) => {
+      if (index === id) {
+        value.color = "primary";
+      } else {
+        value.color = "";
+      }
+    })
+  }
+
+
+  /**
+   * test
+   */
   clickme(): void {
     alert("click me");
   }
 
-  toggleControlState(): void {
-    console.log("toggle");
-    this.control_dialog_class = this.control_dialog_class === "control-dialog" ? "control-dialog-full" : "control-dialog";
-    this.controlState = this.controlState === "inactive" ? "active" : "inactive";
+  test(): void {
+    this.agvs[0].disabled = true;
   }
 
 }
