@@ -9,6 +9,7 @@ import { ControllerModule } from './controller/controller.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgxWebsocketModule, NgxWebsocketService } from "ngx-websocket";
 import { HttpClientModule } from '@angular/common/http';
+import { MapModule } from './map/map.module';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { HttpClientModule } from '@angular/common/http';
     NotFoundModule,
     ControllerModule,
     NgxWebsocketModule,
-    HttpClientModule
+    HttpClientModule,
+    MapModule
   ],
   providers: [
     NgxWebsocketService,

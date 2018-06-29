@@ -16,7 +16,8 @@
 
 ## TODO
 1. 为Controller添加路由守卫
-2. 为Login dialog添加动画效果
+2. 添加Redux
+3. 添加地图编辑模式
 
 ## 依赖
 * Angular: 6.0.5
@@ -38,3 +39,4 @@
 * [PWA 调试](https://www.zcfy.cc/article/how-to-debug-progressive-web-apps-using-browser-developer-tools-4454.html?t=new)
 * [HTML Header中常用标签](http://www.runoob.com/w3cnote/html-meta-intro.html)
 * [配置GitHub SSH](https://www.cnblogs.com/peteremperor/p/6135809.html)
+* [Angular in Depth](https://blog.angularindepth.com/)

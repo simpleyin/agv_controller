@@ -1,0 +1,20 @@
+<div class="map">
+  <svg t="1530172011854" class="icon" style="background-color: #CFD8DC" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2360"
+    xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="90%">
+    <ng-template #svg></ng-template>
+  </svg>
+
+  <div class="drwa-bar">
+    <button mat-raised-button color="primary" (click)="addWorkStation()">add Circle</button>
+    <button mat-raised-button color="primary" (click)="addStationPath()">add Line</button>
+  </div>
+
+  <ng-template #circle let-id="id" let-cx="cx" let-cy="cy" let-r="r">
+      <svg:circle [id]="id" [attr.cx]="cx" [attr.cy]="cy" [attr.r]="r" stroke="black" stroke-width="1" fill="teal" 
+      transform="matrix(1 0 0 1 0 0)" class="svg-workstation" (mousedown)="clickWorkStation($event)"></svg:circle>
+  </ng-template>
+
+  <ng-template #line let-id="id" let-x1="x1" let-y1="y1" let-x2="x2" let-y2="y2" let-style="style">
+    <svg:line [attr.x1]="x1" [attr.x2]="x2" [attr.y1]="y1" [attr.y2]="y2" [style]="style"></svg:line>
+  </ng-template>
+</div>
