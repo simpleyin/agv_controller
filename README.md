@@ -29,8 +29,9 @@
 * angular/material 6.3.0
 * angular/cdk 6.3.0
 * angular/animations 6.0.5
+* d3.js 5.0.0
 
-## 资料
+## 资料&参考
 * [Angular 中文文档](https://www.angular.cn/)
 * [Angular Cli文档](https://github.com/angular/angular-cli/blob/master/packages/angular/cli/README.md)
 * [rxjs 中文文档](https://cn.rx.js.org/)
@@ -40,3 +41,9 @@
 * [HTML Header中常用标签](http://www.runoob.com/w3cnote/html-meta-intro.html)
 * [配置GitHub SSH](https://www.cnblogs.com/peteremperor/p/6135809.html)
 * [Angular in Depth](https://blog.angularindepth.com/)
+* [d3.js](https://d3js.org/)
+* [d3中编译ts提示类型错误](https://stackoverflow.com/questions/44472945/d3-js-and-typescript-compilation-error/44523718#44523718)
+* [d3中使用替换this](https://stackoverflow.com/questions/46406260/how-to-use-this-in-angular-with-d3)
+
+## tips
+* 在vs code中安装angular2-inline插件，获取html字符串模板高亮效果

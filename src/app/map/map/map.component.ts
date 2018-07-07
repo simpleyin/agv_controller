@@ -1,129 +1,153 @@
-import { Component, OnInit, ViewChild, ViewContainerRef, ComponentFactoryResolver, AfterViewInit, ElementRef, TemplateRef, Inject, ComponentFactory, Injector } from '@angular/core';
-import { runInThisContext } from 'vm';
+import { Component, OnInit, ViewChild, ViewContainerRef, ComponentFactoryResolver, AfterViewInit, ElementRef, TemplateRef, Inject, ComponentFactory, Injector, ViewEncapsulation } from '@angular/core';
 import { SvgService } from '../../map/svg.service';
 import { DOCUMENT } from '@angular/common';
 import { _document } from '@angular/platform-browser/src/browser';
 import { DomSanitizer } from '@angular/platform-browser';
+import * as d3 from "d3";
+
 
 @Component({
   selector: 'app-map',
+  encapsulation: ViewEncapsulation.None,  //激活使用D3添加到
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css']
 })
 export class MapComponent implements OnInit, AfterViewInit {
-
-  //获取查找的视图
   //@ViewChild("svgContainer", { read: ElementRef }) svgContainer: ElementRef;
   //@ViewChild("svgTemplate") tpl: TemplateRef<any>; // template写在html中并不会直接显示
-  @ViewChild("svg", {read: ViewContainerRef }) container: ViewContainerRef; //对viewContainerRef插入操作只是将元素append在了host的后边。
-  @ViewChild("circle", {read: TemplateRef }) circle: TemplateRef<any>;
-  @ViewChild("line", {read: TemplateRef }) line: TemplateRef<any>;
+  @ViewChild("svg", { read: ViewContainerRef }) container: ViewContainerRef; //对viewContainerRef插入操作只是将元素append在了host的后边。
+  @ViewChild("circle", { read: TemplateRef }) circle: TemplateRef<any>;
+  @ViewChild("line", { read: TemplateRef }) line: TemplateRef<any>;
   // @ViewChild("divContainer", {read: ViewContainerRef }) divContainer: ViewContainerRef;
   // @ViewChild("divChild", {read: TemplateRef }) divChild: TemplateRef<any>;
-  private workStationCount: number = 0;
-  private stationPathCount: number = 0;
-  private cx: number = 100;
-  private cy: number = 50;
-  private r: number = 30;
-  private _onEditWorkStation: HTMLElement;
-  private _onEditWorkStationCurrentX: number;
-  private _onEditWorkStationCurrentY: number;
-  private _onEditWorkStationMatrix: number[] = [];
+  private svg$: any;
+  public editMode: boolean = false;
+  public editWorkStationMode: boolean = false;
+  private svgWidth$: number;
+  private svgHeight$: number;
+  private CIRCLE_SIZE_S: number = 10;
+  private CIRCLE_SIZE_M: number = 20;
+  private CIRCLE_SIZE_L: number = 30;
+  private CIRCLE_COLOR: string = "teal";
+  alertBarText: string;
+  mock: any;
 
   constructor(
-    @Inject(DOCUMENT) private _document: Document,
-    private sanitizer: DomSanitizer
-    // private cfr: ComponentFactoryResolver,
-    // private cf: ComponentFactory<any>,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-
+    //获取地图数据
+    this.alertBarText = "WARNING";
+    this.mock = [
+      {
+        cx: 100,
+        cy: 100,
+      },
+      {
+        cx: 200,
+        cy: 200,
+      },
+      {
+        cx: 300,
+        cy: 300
+      },
+      {
+        cx: 400,
+        cy: 400
+      }
+    ];
   }
 
   ngAfterViewInit(): void {
-    //let viewRef = this.tpl.createEmbeddedView(null);  //create view
-    //this.container.insert(viewRef); // instert view
-    // create view form templateRef and inster into viewContainerRef
-    //this.cfr.resolveComponentFactory()
-    // this.cf.create(this.injector.get())
-    //this.container.createComponent()
-    // let divRef = this.divChild.createEmbeddedView(null);
-    // this.divContainer.insert(divRef);
+    this.svg$ = d3.select("svg");
+    this.svgHeight$ = parseInt(this.svg$.attr("height"));
+    this.svgWidth$ = parseInt(this.svg$.attr("width"));
+    this.svg$.selectAll("circle").data(this.mock).enter().append("circle")
+      .attr("cx", d => d.cx).attr("cy", d => d.cy).attr("r", 20).classed("work-station", true);
+      // .style("stroke", "black").style("stroke-width", 1).style("stroke-dasharray", "6, 4");
   }
 
   /**
-   * 创建svg circle
+   * 
+   * @param node 拖拽开始
    */
-  addWorkStation(): void {
-    let viewRef = this.circle.createEmbeddedView({
-        id: this.workStationCount++,
-        cx: this.cx,
-        cy: this.cy,
-        r: this.r
-    });
-    this.container.insert(viewRef);
-    this.cx = this.cx + 80;
+  dragStarted(node) {
+    console.log("drag start");
+    d3.select(node).raise().classed("active", true);
   }
 
   /**
-   * 创建svg line,
-   * 注意：使用sanitizer防御如跨站脚本攻击
+   * 拖拽中
+   * @param node 
+   * @param d 
    */
-  addStationPath(): void {
-    let viewRef = this.line.createEmbeddedView({
-      id: this.stationPathCount++,
-      x1: 100,
-      y1: 200,
-      x2: 300,
-      y2: 233,
-      style: this.sanitizer.bypassSecurityTrustStyle("stroke:rgb(99, 99, 99);stroke-width:2")
-    });
-    this.container.insert(viewRef);
-  }
-
-  /**
-   * mouse down event
-   * @param event 
-   */
-  clickWorkStation(event: any): void {
-    console.log("mouse down");
-    this._onEditWorkStationMatrix = [];
-    this._onEditWorkStation = event.target;
-    this._onEditWorkStationCurrentX = event.clientX;
-    this._onEditWorkStationCurrentY = event.clientY;
-    this._onEditWorkStation.getAttributeNS(null, "transform").slice(7, -1).split(" ").forEach(d => {
-      this._onEditWorkStationMatrix.push(parseFloat(d));
-    });
-    this._onEditWorkStation.addEventListener("mouseout", this.deselectWorkStation.bind(this));
-    this._onEditWorkStation.addEventListener("mouseup", this.deselectWorkStation.bind(this));
-    this._onEditWorkStation.addEventListener("mousemove", this.moveWorkStation.bind(this));
-  }
-
-  /**
-   * 站点图标拖动事件
-   * @param event 
-   */
-  moveWorkStation(event: any): void {
-    if (this._onEditWorkStation) {
-      let dx = event.clientX - this._onEditWorkStationCurrentX;
-      let dy = event.clientY - this._onEditWorkStationCurrentY;
-      this._onEditWorkStationMatrix[4] += dx;
-      this._onEditWorkStationMatrix[5] += dy;
-      let newMatrix = `matrix(${this._onEditWorkStationMatrix.join(" ")})`;
-      this._onEditWorkStation.setAttributeNS(null, "transform", newMatrix);
-      this._onEditWorkStationCurrentX = event.clientX;
-      this._onEditWorkStationCurrentY = event.clientY;
+  dragged(node, d) {
+    if (d) {
+      d3.select(node).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+    } else {
+      d3.select(node).attr("cx", +d3.select(node).attr("cx") + d3.event.dx);  //注意此处为d3.event.dx
+      d3.select(node).attr("cy", +d3.select(node).attr("cy") + d3.event.dy);
     }
   }
 
-  deselectWorkStation(event: any): void {
-    if (this._onEditWorkStation) {
-      this._onEditWorkStation.removeEventListener("mouseout", this.moveWorkStation);
-      this._onEditWorkStation.removeEventListener("mouseout", this.deselectWorkStation);
-      this._onEditWorkStation.removeEventListener("mouseup", this.deselectWorkStation);
-      this._onEditWorkStation = null;
-    }
+  /**
+   * 拖拽完毕后将坐标保存至localstorage中，
+   * @param d 拖拽完毕
+   */
+  dragended(node) {
+    d3.select(node).classed("active", false);
+  }
+
+  /**
+   * 触发编辑地图事件
+   */
+  editMap() {
+    this.editMode = true;
+  }
+
+  /**
+   * 触发取消并退出编辑模式
+   */
+  cancelEditMap() {
+    this.editMode = false;
+  }
+
+  /**
+   * 在地图中添加站点
+   */
+  addWorkStation(size: string) {
+    let r = size === 's' ? this.CIRCLE_SIZE_S : (size === 'm' ? this.CIRCLE_SIZE_M : this.CIRCLE_SIZE_L);
+    //append是异步操作？不是
+    this.svg$.append("circle").attr("cx", 300).attr("cy", 300).attr("r", r).style("fill", "red").classed("work-station-editable", true).classed("work-station-new", true);
+    this.addDragToSelectors(".work-station-new");
+  }
+
+  /**
+   * 触发可编辑站点模式事件
+   * 该模式下，站点可拖动.
+   * 拖动后的位置在退出该模式后不会改变。
+   */
+  workStationEditMode() {
+    this.editWorkStationMode = this.editWorkStationMode ? false : true;
+    this.svg$.selectAll("circle").classed("work-station-editable") ? this.svg$.selectAll("circle").classed("work-station-editable", false) : this.svg$.selectAll("circle").classed("work-station-editable", true);
+    this.editWorkStationMode ? this.addDragToSelectors("circle") : this.svg$.selectAll("circle").on(".drag", null);
+  }
+
+  /**
+   * 为选择的元素添加拖拽效果
+   * d 为绑定的data(selection.data(d))
+   * n nodes集合
+   * i nodes索引
+   * @param selector 
+   */
+  addDragToSelectors(selector: string) {
+    this.svg$.selectAll(selector).call(d3.drag().on("start", (d, i, n) => {
+      this.dragStarted(n[i]);
+    }).on("drag", (d, i, n) => {
+      this.dragged(n[i], d);
+    }).on("end", (d, i, n) => {
+      this.dragended(n[i]);
+    }))
   }
 
 }
