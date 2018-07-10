@@ -42,18 +42,22 @@ export class MapComponent implements OnInit, AfterViewInit {
       {
         cx: 100,
         cy: 100,
+        id: 0,
       },
       {
         cx: 200,
         cy: 200,
+        id: 1
       },
       {
         cx: 300,
-        cy: 300
+        cy: 300,
+        id: 2,
       },
       {
         cx: 400,
-        cy: 400
+        cy: 400,
+        id: 3
       }
     ];
   }
@@ -63,7 +67,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.svgHeight$ = parseInt(this.svg$.attr("height"));
     this.svgWidth$ = parseInt(this.svg$.attr("width"));
     this.svg$.selectAll("circle").data(this.mock).enter().append("circle")
-      .attr("cx", d => d.cx).attr("cy", d => d.cy).attr("r", 20).classed("work-station", true);
+      .attr("cx", d => d.cx).attr("cy", d => d.cy).attr("r", 20).attr("data-workStationId", d => d.id).classed("work-station", true);
       // .style("stroke", "black").style("stroke-width", 1).style("stroke-dasharray", "6, 4");
   }
 
@@ -131,6 +135,33 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.editWorkStationMode = this.editWorkStationMode ? false : true;
     this.svg$.selectAll("circle").classed("work-station-editable") ? this.svg$.selectAll("circle").classed("work-station-editable", false) : this.svg$.selectAll("circle").classed("work-station-editable", true);
     this.editWorkStationMode ? this.addDragToSelectors("circle") : this.svg$.selectAll("circle").on(".drag", null);
+
+  }
+
+  /**
+   * 触发编辑AGV运行路线模式
+   * 为每个站点添加一个路线拖拽点，通过拖拽点完成两个站点之间路线的建立
+   * 模式切换？
+   * 为每条创建成功的路线设定一个编号，
+   */
+  workPathEditMode() {
+    console.log("workPathEdit Mode");
+    this.svg$.selectAll("circle").each((d, i, n) => {
+      let x = d3.select(n[i]).attr("cx");
+      let y = d3.select(n[i]).attr("cy");
+      this.svg$.append("circle").attr("cx", x).attr("cy", y).attr("r", 10).style("fill", "orange").classed("work-station-drag-point", true).attr("data-dragId", d3.select(n[i]).attr("data-workStationId"))
+        .call(d3.drag().on("start", (d, i, n) => {
+          this.dragStarted(n[i]);
+        }).on("drag", (d, i, n) => {
+          this.dragged(n[i], d);
+          //线段的x2, y2坐标做出对应的变化
+          this.changeLineWithDrag(n[i]);
+        }).on("end", (d, i, n) => {
+          this.dragended(n[i]);
+        }))
+      this.svg$.append("line").attr("x1", x).attr("y1", y).attr("x2", x).attr("y2", y).attr("stroke", "black").attr("data-originPathId", d3.select(n[i]).attr("data-workStationId"))
+        .style("stroke-width", 2);
+    })
   }
 
   /**
@@ -148,6 +179,11 @@ export class MapComponent implements OnInit, AfterViewInit {
     }).on("end", (d, i, n) => {
       this.dragended(n[i]);
     }))
+  }
+
+  
+  changeLineWithDrag(node) {
+    d3.select(`[data-originPathId='${d3.select(node).attr('data-dragId')}']`).attr("x2", d3.select(node).attr("cx")).attr("y2", d3.select(node).attr("cy"));
   }
 
 }
