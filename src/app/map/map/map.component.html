@@ -4,43 +4,22 @@
     <ng-template #svg></ng-template>
   </svg>
   <div class="alert-bar">{{alertBarText}}</div>
-<!-- 
-  <ng-template #circle let-id="id" let-cx="cx" let-cy="cy" let-r="r">
-    <svg:circle [id]="id" [attr.cx]="cx" [attr.cy]="cy" [attr.originalCx]="cx" [attr.originalCy]="cy" [attr.r]="r" stroke="black"
-      stroke-width="1" fill="teal" class="svg-workstation" (mousedown)="clickWorkStation($event)"></svg:circle>
-  </ng-template>
 
-  <ng-template #line let-id="id" let-x1="x1" let-y1="y1" let-x2="x2" let-y2="y2" let-style="style">
-    <svg:line [attr.x1]="x1" [attr.x2]="x2" [attr.y1]="y1" [attr.y2]="y2" [style]="style"></svg:line>
-  </ng-template> -->
-</div>
+
 <div *ngIf="!editMode" class="map-controller-bar">
   <button mat-raised-button color="warn" (click)="editMap()">编辑地图</button>
   <button mat-raised-button color="primary" (click)="chooseMap()">选择地图</button>
   <button mat-raised-button color="primary">another</button>
 </div>
 
-<div *ngIf="editMode" class="map-edit-bar">
-  <button mat-raised-button color="primary" (click)="saveMap()">保存</button>
-  <button mat-raised-button color="warn" (click)="cancelEditMap()">取消</button>
-  <button mat-raised-button color="warn" (click)="cancelEditMap()">重置</button>
-  <button mat-raised-button color="primary" (click)="goBackToPreStep()">上一步</button>
-  <button mat-raised-button color="primary" (click)="goToNextStep()">下一步</button>
+<ng-template map-editor></ng-template>
+
 </div>
 
-<div *ngIf="editMode" class="map-edit-tool-bar">
-  <div class="tool-item">
-    <button mat-mini-fab color="primary" (click)="workStationEditMode()">
-      <mat-icon aria-lable="workStationEdit">add_circle</mat-icon>
-    </button>
-    <button *ngIf="editWorkStationMode" mat-mini-fab color="basic" (click)="addWorkStation('s')">S</button>
-    <button *ngIf="editWorkStationMode" mat-mini-fab color="basic" (click)="addWorkStation('m')">M</button>
-    <button *ngIf="editWorkStationMode" mat-mini-fab color="basic" (click)="addWorkStation('l')">L</button>
-  </div>
-  <div class="tool-item">
-    <button mat-mini-fab color="primary" (click)="workPathEditMode()">
-      <mat-icon aria-lable="workPathEdit">create</mat-icon>
-    </button>
-  </div>
-</div>
+
+
+<!-- *************** -->
+
+
+
 

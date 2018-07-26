@@ -1,9 +1,10 @@
 import { Component, OnInit, ViewChild, ViewContainerRef, ComponentFactoryResolver, AfterViewInit, ElementRef, TemplateRef, Inject, ComponentFactory, Injector, ViewEncapsulation } from '@angular/core';
-import { SvgService } from '../../map/svg.service';
-import { DOCUMENT } from '@angular/common';
-import { _document } from '@angular/platform-browser/src/browser';
-import { DomSanitizer } from '@angular/platform-browser';
 import * as d3 from "d3";
+import { MapEditorComponent } from '../map-editor/map-editor.component';
+import { Type } from '@angular/core';
+import { MapEditorDirective } from '../map-editor.directive';
+import { ComponentInteractService } from '../../service/component-interact-service.service';
+import { Subscription } from '../../../../node_modules/rxjs';
 
 
 @Component({
@@ -20,43 +21,48 @@ export class MapComponent implements OnInit, AfterViewInit {
   @ViewChild("line", { read: TemplateRef }) line: TemplateRef<any>;
   // @ViewChild("divContainer", {read: ViewContainerRef }) divContainer: ViewContainerRef;
   // @ViewChild("divChild", {read: TemplateRef }) divChild: TemplateRef<any>;
-  private svg$: any;
+  @ViewChild(MapEditorDirective) mapEditor: MapEditorDirective;
+
+  public svg$: any;
   public editMode: boolean = false;
   public editWorkStationMode: boolean = false;
   private svgWidth$: number;
   private svgHeight$: number;
-  private CIRCLE_SIZE_S: number = 10;
-  private CIRCLE_SIZE_M: number = 20;
-  private CIRCLE_SIZE_L: number = 30;
-  private CIRCLE_COLOR: string = "teal";
+  subscription: Subscription;
+
   alertBarText: string;
   mock: any;
 
   constructor(
-  ) { }
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private interactService: ComponentInteractService
+  ) {
+
+    this.subscription = interactService.mapEditMode$.subscribe(x => this.alertBarText = x);
+  }
 
   ngOnInit(): void {
     //获取地图数据
     this.alertBarText = "WARNING";
     this.mock = [
       {
-        cx: 100,
-        cy: 100,
+        cx: 300,
+        cy: 300,
         id: 0,
       },
       {
-        cx: 200,
-        cy: 200,
+        cx: 450,
+        cy: 400,
         id: 1
       },
       {
-        cx: 300,
-        cy: 300,
+        cx: 600,
+        cy: 400,
         id: 2,
       },
       {
-        cx: 400,
-        cy: 400,
+        cx: 800,
+        cy: 500,
         id: 3
       }
     ];
@@ -67,123 +73,30 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.svgHeight$ = parseInt(this.svg$.attr("height"));
     this.svgWidth$ = parseInt(this.svg$.attr("width"));
     this.svg$.selectAll("circle").data(this.mock).enter().append("circle")
-      .attr("cx", d => d.cx).attr("cy", d => d.cy).attr("r", 20).attr("data-workStationId", d => d.id).classed("work-station", true);
+      .attr("cx", d => d.cx).attr("cy", d => d.cy).attr("r", 20).attr("id", d => "workStation" + d.id).attr("data-workStationId", d => d.id).classed("work-station", true);
       // .style("stroke", "black").style("stroke-width", 1).style("stroke-dasharray", "6, 4");
   }
 
-  /**
-   * 
-   * @param node 拖拽开始
-   */
-  dragStarted(node) {
-    console.log("drag start");
-    d3.select(node).raise().classed("active", true);
-  }
 
-  /**
-   * 拖拽中
-   * @param node 
-   * @param d 
-   */
-  dragged(node, d) {
-    if (d) {
-      d3.select(node).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
-    } else {
-      d3.select(node).attr("cx", +d3.select(node).attr("cx") + d3.event.dx);  //注意此处为d3.event.dx
-      d3.select(node).attr("cy", +d3.select(node).attr("cy") + d3.event.dy);
-    }
-  }
 
-  /**
-   * 拖拽完毕后将坐标保存至localstorage中，
-   * @param d 拖拽完毕
-   */
-  dragended(node) {
-    d3.select(node).classed("active", false);
-  }
-
-  /**
+  /** 
    * 触发编辑地图事件
    */
   editMap() {
     this.editMode = true;
+    let componentFactory = this.componentFactoryResolver.resolveComponentFactory(MapEditorComponent);
+    let viewContainerRef = this.mapEditor.viewContainerRef; //此处的viewContainerRef是对<ng template>的引用
+    viewContainerRef.clear();
+
+    let componentRef = viewContainerRef.createComponent(componentFactory);
+    (<MapEditorComponent>componentRef.instance).svg$ = this.svg$; //向动态组件传递值
   }
 
   /**
-   * 触发取消并退出编辑模式
+   * 地图编辑模式改变
    */
-  cancelEditMap() {
-    this.editMode = false;
-  }
-
-  /**
-   * 在地图中添加站点
-   */
-  addWorkStation(size: string) {
-    let r = size === 's' ? this.CIRCLE_SIZE_S : (size === 'm' ? this.CIRCLE_SIZE_M : this.CIRCLE_SIZE_L);
-    //append是异步操作？不是
-    this.svg$.append("circle").attr("cx", 300).attr("cy", 300).attr("r", r).style("fill", "red").classed("work-station-editable", true).classed("work-station-new", true);
-    this.addDragToSelectors(".work-station-new");
-  }
-
-  /**
-   * 触发可编辑站点模式事件
-   * 该模式下，站点可拖动.
-   * 拖动后的位置在退出该模式后不会改变。
-   */
-  workStationEditMode() {
-    this.editWorkStationMode = this.editWorkStationMode ? false : true;
-    this.svg$.selectAll("circle").classed("work-station-editable") ? this.svg$.selectAll("circle").classed("work-station-editable", false) : this.svg$.selectAll("circle").classed("work-station-editable", true);
-    this.editWorkStationMode ? this.addDragToSelectors("circle") : this.svg$.selectAll("circle").on(".drag", null);
-
-  }
-
-  /**
-   * 触发编辑AGV运行路线模式
-   * 为每个站点添加一个路线拖拽点，通过拖拽点完成两个站点之间路线的建立
-   * 模式切换？
-   * 为每条创建成功的路线设定一个编号，
-   */
-  workPathEditMode() {
-    console.log("workPathEdit Mode");
-    this.svg$.selectAll("circle").each((d, i, n) => {
-      let x = d3.select(n[i]).attr("cx");
-      let y = d3.select(n[i]).attr("cy");
-      this.svg$.append("circle").attr("cx", x).attr("cy", y).attr("r", 10).style("fill", "orange").classed("work-station-drag-point", true).attr("data-dragId", d3.select(n[i]).attr("data-workStationId"))
-        .call(d3.drag().on("start", (d, i, n) => {
-          this.dragStarted(n[i]);
-        }).on("drag", (d, i, n) => {
-          this.dragged(n[i], d);
-          //线段的x2, y2坐标做出对应的变化
-          this.changeLineWithDrag(n[i]);
-        }).on("end", (d, i, n) => {
-          this.dragended(n[i]);
-        }))
-      this.svg$.append("line").attr("x1", x).attr("y1", y).attr("x2", x).attr("y2", y).attr("stroke", "black").attr("data-originPathId", d3.select(n[i]).attr("data-workStationId"))
-        .style("stroke-width", 2);
-    })
-  }
-
-  /**
-   * 为选择的元素添加拖拽效果
-   * d 为绑定的data(selection.data(d))
-   * n nodes集合
-   * i nodes索引
-   * @param selector 
-   */
-  addDragToSelectors(selector: string) {
-    this.svg$.selectAll(selector).call(d3.drag().on("start", (d, i, n) => {
-      this.dragStarted(n[i]);
-    }).on("drag", (d, i, n) => {
-      this.dragged(n[i], d);
-    }).on("end", (d, i, n) => {
-      this.dragended(n[i]);
-    }))
-  }
-
-  
-  changeLineWithDrag(node) {
-    d3.select(`[data-originPathId='${d3.select(node).attr('data-dragId')}']`).attr("x2", d3.select(node).attr("cx")).attr("y2", d3.select(node).attr("cy"));
+  onEditModeChange(type: string) {
+    this.alertBarText = type;
   }
 
 }

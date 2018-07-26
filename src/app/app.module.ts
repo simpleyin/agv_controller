@@ -10,6 +10,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgxWebsocketModule, NgxWebsocketService } from "ngx-websocket";
 import { HttpClientModule } from '@angular/common/http';
 import { MapModule } from './map/map.module';
+import { MapEditorComponent } from './map/map-editor/map-editor.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,9 @@ import { MapModule } from './map/map.module';
   providers: [
     NgxWebsocketService,
     {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}
+  ],
+  entryComponents: [
+    MapEditorComponent
   ],
   bootstrap: [AppComponent],
 })

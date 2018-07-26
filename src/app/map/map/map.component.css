@@ -91,7 +91,6 @@ svg {
 
 .work-station {
     fill: teal;
-
 }
 
 .work-station-editable {
@@ -104,3 +103,7 @@ svg {
 .work-station-drag-point:hover {
     cursor: pointer;
 }
+
+/* .map-controller-bar > button:hover {
+    box-shadow: 0 12 7 -1 rgba(0, 0, 0, .2);
+} */

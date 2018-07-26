@@ -1,0 +1,23 @@
+<div class="map-edit-bar">
+  <button mat-raised-button color="primary" (click)="saveMap()">保存</button>
+  <button mat-raised-button color="warn" (click)="cancelEditMap()">取消</button>
+  <button mat-raised-button color="warn" (click)="cancelEditMap()">重置</button>
+  <button mat-raised-button color="primary" (click)="goBackToPreStep()">上一步</button>
+  <button mat-raised-button color="primary" (click)="goToNextStep()">下一步</button>
+</div>
+
+<div class="map-edit-tool-bar">
+  <div class="tool-item">
+    <button mat-mini-fab color="primary" (click)="workStationEditMode()" [disabled]="disabled[0]">
+      <mat-icon aria-lable="workStationEdit">add_circle</mat-icon>
+    </button>
+    <button *ngIf="editWorkStationMode" mat-mini-fab color="basic" (click)="addWorkStation('s')">S</button>
+    <button *ngIf="editWorkStationMode" mat-mini-fab color="basic" (click)="addWorkStation('m')">M</button>
+    <button *ngIf="editWorkStationMode" mat-mini-fab color="basic" (click)="addWorkStation('l')">L</button>
+  </div>
+  <div class="tool-item">
+    <button mat-mini-fab color="primary" (click)="workPathEditMode()" [disabled]="disabled[1]">
+      <mat-icon aria-lable="workPathEdit">create</mat-icon>
+    </button>
+  </div>  
+</div>

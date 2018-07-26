@@ -4,20 +4,21 @@
 1. Angular
 2. PWA
 3. Material Design
-4. 响应式布局
-5. 状态管理(Redux)
-6. 响应式编程
+5. 状态管理
 
 ## 程序功能模块 
 * AGV操作模块
 * AGV监控模块
+* 地图编辑模块
 * 登录模块
 * 路由模块
 
+## online demo
+[AGV Controller]()
+
 ## TODO
 1. 为Controller添加路由守卫
-2. 添加Redux
-3. 添加地图编辑模式
+2. 为地图编辑模式添加状态管理
 
 ## 依赖
 * Angular: 6.0.5
