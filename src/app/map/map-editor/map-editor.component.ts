@@ -1,7 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter, AfterViewInit } from '@angular/core';
 import * as d3 from "d3";
 import { ComponentInteractService } from '../../service/component-interact-service.service';
-import { workStation } from '../../meta/workStation';
+import { WorkStation } from '../../meta/workStation';
+import { MapService } from '../../service/map.service';
 
 
 @Component({
@@ -13,7 +14,7 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
   @Input() svg$: any;
   private gc: any;  //放置拖拽圆的图层
   private gp: any;  //放置路线的图层
-  private workStations: workStation[] = [];
+  private workStations: WorkStation[] = [];
 
   public editMode: boolean = false;
   public editWorkStationMode: boolean = false;
@@ -27,10 +28,10 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
   private disabled: boolean[];
 
   constructor(
-    private interactService: ComponentInteractService
+    private interactService: ComponentInteractService,
+    private mapSerivce: MapService
   ) {
     this.disabled = [false, false];
- 
   }
 
   ngOnInit() {
@@ -46,34 +47,14 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
    * 保存站点的信息，范围，id,等
    */
   updateWorkStation() {
+    this.workStations = [];
     this.svg$.selectAll(".work-station").each((d, i, n) => {
       let node = d3.select(n[i]);
-      this.workStations.push(new workStation(node.attr("data-workStationId"), node.attr("cx"), node.attr("cy"), node.attr("r")))
+      this.workStations.push(new WorkStation(node.attr("data-workStationId"), node.attr("cx"), node.attr("cy"), node.attr("r")))
     });
   }
 
-  /**
-   * 
-   * @param node 拖拽开始
-   */
-  dragStarted(node) {
-    console.log("drag start");
-    d3.select(node).raise().classed("active", true);
-  }
 
-  /**
-   * 拖拽中
-   * @param node 
-   * @param d 
-   */
-  dragged(node, d) {
-    if (d) {
-      d3.select(node).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
-    } else {
-      d3.select(node).attr("cx", +d3.select(node).attr("cx") + d3.event.dx);  //注意此处为d3.event.dx
-      d3.select(node).attr("cy", +d3.select(node).attr("cy") + d3.event.dy);
-    }
-  }
 
   /**
    * 编辑路线模式
@@ -89,7 +70,7 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
       d3.select("#" + w.name).style("fill", w.DEFAULT_COLOR);
       let x = d3.select("#" + w.name).attr("cx");
       let y = d3.select("#" + w.name).attr("cy");
-      
+
       if (w.checkInside(parseFloat(d3.select(node).attr("cx")), parseFloat(d3.select(node).attr("cy")))) {
         //检查是否拖拽回到了出发点
         if (d3.select(node).attr("data-dragId") !== w.id) {
@@ -100,6 +81,7 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
         }
       }
     });
+
     d3.select(node).attr("cx", x1).attr("cy", y1);
     oldPath.attr("x2", x1).attr("y2", y1);
   }
@@ -112,14 +94,17 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * 在地图中添加站点
+   * 编辑站点模式：
+   * 在地图中加入指定大小的站点
+   * @param size 's', 'm' or 'l',代表三种不同大小的站点图标
    */
   addWorkStation(size: string) {
     let r = size === 's' ? this.CIRCLE_SIZE_S : (size === 'm' ? this.CIRCLE_SIZE_M : this.CIRCLE_SIZE_L);
     //添加新的站点，TODO赋予ID
-    this.svg$.append("circle").attr("cx", 300).attr("cy", 300).attr("r", r).style("fill", "red")
-      .classed("work-station-editable", true).classed("work-station-new", true).classed("work-station", true);
-    this.addDragToWorkStation();
+    this.svg$.append("circle").attr("cx", 300).attr("cy", 300).attr("r", r)
+      .classed("work-station-editable", true).classed("work-station", true).classed("work-station-new", true);
+    //添加拖动效果
+    this.addDragToWorkStation(".work-station-new");
     //更新站点信息
     this.updateWorkStation();
   }
@@ -128,6 +113,7 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
    * 触发可编辑站点模式事件
    * 该模式下，站点可拖动.
    * 拖动后的位置在退出该模式后不会改变。
+   * 退出该模式后应当重置地图元素的状态为edit
    */
   workStationEditMode() {
     this.editWorkStationMode = this.editWorkStationMode ? false : true;
@@ -136,15 +122,10 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
     //更改提示文字
     this.editWorkStationMode ? this.interactService.changeMapEditMode("editWorkStationMode") : this.interactService.changeMapEditMode("WARNING");
     //使得站点可拖动
-    this.svg$.selectAll("circle").classed("work-station-editable") ? this.svg$.selectAll("circle").classed("work-station-editable", false) : this.svg$.selectAll("circle").classed("work-station-editable", true);
-    this.editWorkStationMode ? this.addDragToWorkStation() : this.svg$.selectAll(".work-station").on(".drag", null);
-  }
-
-  /**
-   * 站点编辑模式
-   */
-  workStationDragended(node) {
-    //TODO
+    this.svg$.selectAll(".work-station").classed("work-station-editable") ? this.svg$.selectAll("circle").classed("work-station-editable", false) : this.svg$.selectAll("circle").classed("work-station-editable", true);
+    this.editWorkStationMode ? this.addDragToWorkStation(".work-station") : this.svg$.selectAll(".work-station").on(".drag", null);
+    //保存修改后的站点信息
+    this.updateWorkStation();
   }
 
   /**
@@ -155,8 +136,8 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
     let id = d3.select(node).attr("data-workStationId");
     let x = d3.select(node).attr("cx");
     let y = d3.select(node).attr("cy");
-    d3.select(`[data-arrive='${id}']`).attr("x2", x).attr("y2", y); //根据线段的始末不同，改变不同的坐标
-    d3.select(`[data-from='${id}']`).attr("x1", x).attr("y1", y);
+    d3.selectAll(`[data-arrive='${id}']`).attr("x2", x).attr("y2", y); //根据线段的始末不同，改变不同的坐标,注意使用selectAll，站点可能链接多个线路.
+    d3.selectAll(`[data-from='${id}']`).attr("x1", x).attr("y1", y);
   }
 
   /**
@@ -166,9 +147,9 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
    * 为每条创建成功的路线设定一个编号，
    */
   workPathEditMode() {
-    this.gc = this.gc ? this.gc : this.svg$.append("g").attr("id", "gc"); 
+    this.gc = this.gc ? this.gc : this.svg$.append("g").attr("id", "gc");
     this.gp = this.gp ? this.gp : this.svg$.insert("g", "circle").attr("id", "gp");   //将线段插入到所有的站点节点的前面.
-    this.editWorkPathEditMode = this.editWorkPathEditMode ? false : true;    
+    this.editWorkPathEditMode = this.editWorkPathEditMode ? false : true;
     this.disabled = this.editWorkPathEditMode ? this.disabled.map((v, i) => i === 1 ? v = false : v = true) : this.disabled.map((v, i) => false);
     this.editWorkPathEditMode ? this.interactService.changeMapEditMode("editWorkPathEditMode") : this.interactService.changeMapEditMode("WARNING");
     this.editWorkPathEditMode ? this.addEditWorkPathElement() : this.removeEditWorkPathElement();
@@ -184,19 +165,46 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
       let y = d3.select(n[i]).attr("cy");
       this.gc.append("circle").attr("cx", x).attr("cy", y).attr("r", 10).style("fill", "orange").classed("work-station-drag-point", true).attr("data-dragId", d3.select(n[i]).attr("data-workStationId"))
         .call(d3.drag().on("start", (d, i, n) => {
-          this.dragStarted(n[i]);
+          this.workPathDragStarted(n[i]);
         }).on("drag", (d, i, n) => {
-          this.dragged(n[i], d);
+          this.workPathDragged(n[i], d);
           //线段的x2, y2坐标做出对应的变化
           this.changeLineWithDrag(n[i]);
           this.hightlight(n[i]);
         }).on("end", (d, i, n) => {
           this.pointerDragended(n[i]);
         }))
-      this.gp.append("line").attr("x1", x).attr("y1", y).attr("x2", x).attr("y2", y).attr("stroke", "black").attr("data-originPathId", d3.select(n[i]).attr("data-workStationId"))
-        .style("stroke-width", 2);
+      this.gp.append("line").attr("x1", x).attr("y1", y).attr("x2", x).attr("y2", y).attr("stroke", "black")
+        .attr("data-originPathId", d3.select(n[i]).attr("data-workStationId"))
+        .style("stroke-width", 2).classed("originPath", true);
     })
   }
+
+  /**
+   * 站点路线编辑模式：
+   * 拖拽点拖动开始函数
+   * @param node 拖拽开始
+   */
+  workPathDragStarted(node) {
+    d3.select(node).raise();
+  }
+
+  /**
+   * 站点路线编辑模式：
+   * 拖拽点拖拽中
+   * @param node 
+   * @param d 
+   */
+  workPathDragged(node, d) {
+    if (d) {
+      d3.select(node).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+    } else {
+      d3.select(node).attr("cx", +d3.select(node).attr("cx") + d3.event.dx);  //注意此处为d3.event.dx
+      d3.select(node).attr("cy", +d3.select(node).attr("cy") + d3.event.dy);
+    }
+  }
+
+
 
   /**
    * 移除编辑路线的元素
@@ -205,6 +213,7 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
     this.gc = undefined;
     //移除拖拽点
     this.svg$.selectAll("#gc").remove();
+    this.svg$.selectAll(".originPath").remove();
     //移除没有放置好的线段
 
   }
@@ -214,19 +223,48 @@ export class MapEditorComponent implements OnInit, AfterViewInit {
    * d 为绑定的data(selection.data(d))
    * n nodes集合
    * i nodes索引
-   * @param selector 
+   * @param {string} selector 
    */
-  addDragToWorkStation() {
-    this.svg$.selectAll(".work-station").call(d3.drag().on("start", (d, i, n) => {
-      this.dragStarted(n[i]);
+  addDragToWorkStation(selector) {
+    this.svg$.selectAll(selector).call(d3.drag().on("start", (d, i, n) => {
+      this.workStationDragStarted(n[i]);
     }).on("drag", (d, i, n) => {
-      this.dragged(n[i], d);
+      this.workStationDragged(n[i], d);
       //同时动态延展相关的路径
       let id = d3.select(n[i]).attr("data-workStationId");
       this.dynamicWorkPath(n[i]);
     }).on("end", (d, i, n) => {
       this.workStationDragended(n[i]);
     }))
+  }
+
+  /**
+   * 站点拖动开始函数
+   * @param node 拖拽开始
+   */
+  workStationDragStarted(node) {
+    d3.select(node).raise();
+  }
+
+  /**
+   * 站点拖拽中
+   * @param node 
+   * @param d 
+   */
+  workStationDragged(node, d) {
+    if (d) {
+      d3.select(node).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+    } else {
+      d3.select(node).attr("cx", +d3.select(node).attr("cx") + d3.event.dx);  //注意此处为d3.event.dx
+      d3.select(node).attr("cy", +d3.select(node).attr("cy") + d3.event.dy);
+    }
+  }
+
+  /**
+   * 站点编辑模式
+   */
+  workStationDragended(node) {
+    //TODO
   }
 
   /**

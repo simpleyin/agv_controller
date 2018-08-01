@@ -11,6 +11,7 @@ import { NgxWebsocketModule, NgxWebsocketService } from "ngx-websocket";
 import { HttpClientModule } from '@angular/common/http';
 import { MapModule } from './map/map.module';
 import { MapEditorComponent } from './map/map-editor/map-editor.component';
+import { MapService } from './service/map.service';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { MapEditorComponent } from './map/map-editor/map-editor.component';
   ],
   providers: [
     NgxWebsocketService,
+    MapService,
     {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}
   ],
   entryComponents: [

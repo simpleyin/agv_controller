@@ -5,6 +5,8 @@ import { Type } from '@angular/core';
 import { MapEditorDirective } from '../map-editor.directive';
 import { ComponentInteractService } from '../../service/component-interact-service.service';
 import { Subscription } from '../../../../node_modules/rxjs';
+import { MapService } from '../../service/map.service';
+import { WorkPath } from '../../meta/workPath';
 
 
 @Component({
@@ -32,10 +34,12 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   alertBarText: string;
   mock: any;
+  path: any;
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
-    private interactService: ComponentInteractService
+    private interactService: ComponentInteractService,
+    private mapService: MapService
   ) {
 
     this.subscription = interactService.mapEditMode$.subscribe(x => this.alertBarText = x);
@@ -44,40 +48,45 @@ export class MapComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     //获取地图数据
     this.alertBarText = "WARNING";
-    this.mock = [
-      {
-        cx: 300,
-        cy: 300,
-        id: 0,
-      },
-      {
-        cx: 450,
-        cy: 400,
-        id: 1
-      },
-      {
-        cx: 600,
-        cy: 400,
-        id: 2,
-      },
-      {
-        cx: 800,
-        cy: 500,
-        id: 3
-      }
-    ];
+    this.mock = this.mapService.map.workStations;
+    this.path = this.mapService.map.workPaths;
   }
 
   ngAfterViewInit(): void {
+    this.loadMapElement();
+    this.linkElement();
+  }
+
+  /**
+   * 加载地图中的元素，站点，路线等
+   * 并初始化一些效果，如绑定拖动
+   */
+  loadMapElement() {
     this.svg$ = d3.select("svg");
     this.svgHeight$ = parseInt(this.svg$.attr("height"));
     this.svgWidth$ = parseInt(this.svg$.attr("width"));
+
+    this.svg$.selectAll(".fixedPath").data(this.path).enter().append("line")
+      .attr("x1", d => d.x1).attr("y1", d => d.y1).attr("x2", d => d.x2).attr("y2", d => d.y2)
+      .attr("stroke", "black")
+      .attr("data-originPathId", d => d.id)
+      .attr("data-from", d => d.fromWorkStationId)
+      .attr("data-arrive", d => d.arriveWorkStationId)
+      .style("stroke-width", 2).classed("fixedPath", true);
+
     this.svg$.selectAll("circle").data(this.mock).enter().append("circle")
-      .attr("cx", d => d.cx).attr("cy", d => d.cy).attr("r", 20).attr("id", d => "workStation" + d.id).attr("data-workStationId", d => d.id).classed("work-station", true);
-      // .style("stroke", "black").style("stroke-width", 1).style("stroke-dasharray", "6, 4");
+      .attr("cx", d => d.cx).attr("cy", d => d.cy).attr("r", 20)
+      .attr("id", d => "workStation" + d.id)
+      .attr("data-workStationId", d => d.id)
+      .classed("work-station", true);
   }
 
+  /**
+   * 绑定线路与站点，使其拖动时动态变化
+   */
+  linkElement() {
 
+  }
 
   /** 
    * 触发编辑地图事件

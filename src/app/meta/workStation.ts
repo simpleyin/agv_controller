@@ -1,4 +1,4 @@
-export class workStation {
+export class WorkStation {
     id: number | string;
     name: string;
     cx: number;
